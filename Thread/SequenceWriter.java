@@ -58,18 +58,18 @@ public class SequenceWriter {
         public void run() {
             for (int m = 0; m < runTotal; m++) {
                 lock.lock();
-                    try {
-                        for (StringBuilder builder : buffList) {
-                            if((builder.lastIndexOf("+") == builder.length() - 1) && (builder.lastIndexOf("1") == builder.length() - 2)) {
-                                builder.append("t2");
-                            }
+                try {
+                    for (StringBuilder builder : buffList) {
+                        if ((builder.lastIndexOf("+") == builder.length() - 1) && (builder.lastIndexOf("1") == builder.length() - 2)) {
+                            builder.append("t2");
                         }
-                        t3Sig.signal();
-                        t2Sig.await();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    } finally {
-                        lock.unlock();
+                    }
+                    t3Sig.signal();
+                    t2Sig.await();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    lock.unlock();
                 }
             }
         }
@@ -80,18 +80,18 @@ public class SequenceWriter {
         public void run() {
             for (int m = 0; m < runTotal; m++) {
                 lock.lock();
-                    try {
-                        for (StringBuilder builder : buffList) {
-                            if((builder.lastIndexOf("+") == builder.length() - 1) && (builder.lastIndexOf("2") == builder.length() - 2)) {
-                                builder.append("t3");
-                            }
+                try {
+                    for (StringBuilder builder : buffList) {
+                        if ((builder.lastIndexOf("+") == builder.length() - 1) && (builder.lastIndexOf("2") == builder.length() - 2)) {
+                            builder.append("t3");
                         }
-                        plusSig.signal();
-                        t3Sig.await();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    } finally {
-                        lock.unlock();
+                    }
+                    plusSig.signal();
+                    t3Sig.await();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    lock.unlock();
                 }
             }
         }
@@ -103,21 +103,21 @@ public class SequenceWriter {
             for (int m = 0; m < runTotal; m++) {
                 lock.lock();
                 try {
-                        for(StringBuilder builder : buffList) {
-                            char[] chars = new char[1];
-                            builder.getChars(builder.length() - 1, builder.length(), chars, 0);
-                            if(chars[0] == '1' || chars[0] == '2' || chars[0] == '3') {
-                                builder.append("+");
-                            }
+                    for (StringBuilder builder : buffList) {
+                        char[] chars = new char[1];
+                        builder.getChars(builder.length() - 1, builder.length(), chars, 0);
+                        if (chars[0] == '1' || chars[0] == '2' || chars[0] == '3') {
+                            builder.append("+");
                         }
-                        t1Sig.signal();
-                        plusSig.await();
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
+                    t1Sig.signal();
+                    plusSig.await();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         }
+    }
 
     static class Printer implements Runnable {
         List<FileWriter> writers = new ArrayList<>();
@@ -135,30 +135,30 @@ public class SequenceWriter {
         @Override
         public void run() {
             while (true) {
-                    try {
-                        for (int i = 0;i < buffList.size();i++) {
-                            StringBuilder buff = buffList.get(i);
-                            if(buff.length() > 100) {
-                                lock.lock();
-                                try {
-                                    char[] chars = new char[1];
-                                    buff.getChars(buff.length() - 1, buff.length(), chars, 0);
-                                    if (chars[0] == (i == 0 ? 51 :(i == 1 ? 49 : (i == 2 ? 50 : -1))) ) { //49 --> ASCII 1
-                                        writeFile(writers.get(i), buff.substring(3));
-                                        buff.delete(2, buff.length());
-                                    }
-
-                                } finally {
-                                    lock.unlock();
+                try {
+                    for (int i = 0; i < buffList.size(); i++) {
+                        StringBuilder buff = buffList.get(i);
+                        if (buff.length() > 100) {
+                            lock.lock();
+                            try {
+                                char[] chars = new char[1];
+                                buff.getChars(buff.length() - 1, buff.length(), chars, 0);
+                                if (chars[0] == (i == 0 ? 51 : (i == 1 ? 49 : (i == 2 ? 50 : -1)))) { //49 --> ASCII 1
+                                    writeFile(writers.get(i), buff.substring(3));
+                                    buff.delete(2, buff.length());
                                 }
+
+                            } finally {
+                                lock.unlock();
                             }
                         }
-                        Thread.sleep(50);
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
+                    Thread.sleep(50);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
+        }
 
         private void writeFile(FileWriter file, String outStr) throws FileNotFoundException {
             try {
